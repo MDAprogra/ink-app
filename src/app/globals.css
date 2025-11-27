@@ -1,4 +1,4 @@
-@import "tailwindcss";
+/* @import "tailwindcss";
 
 :root {
   --background: #ffffff;
@@ -23,4 +23,72 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+} */
+
+
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  /* Tes nouvelles couleurs sémantiques */
+  --color-primary: var(--primary);
+  --color-primary-fg: var(--primary-foreground);
+  
+  --color-muted: var(--muted);
+  --color-muted-fg: var(--muted-foreground);
+  
+  --color-border: var(--border);
+  --color-danger: var(--danger);
+  
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* THÈME CLAIR (Light Mode) */
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a; /* Slate 900 - Texte principal */
+
+  /* Couleur Principale (Boutons, Liens actifs) - Bleu Roi */
+  --primary: #2563eb; 
+  --primary-foreground: #ffffff; /* Texte sur le bouton primaire */
+
+  /* Éléments secondaires (Arrière-plan tableaux, grisés) */
+  --muted: #f1f5f9; /* Slate 100 */
+  --muted-foreground: #64748b; /* Slate 500 - Texte secondaire */
+
+  /* Bordures */
+  --border: #e2e8f0; /* Slate 200 */
+
+  /* Actions destructives / Stock bas */
+  --danger: #ef4444; /* Red 500 */
+}
+
+/* THÈME SOMBRE (Dark Mode) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #020617; /* Slate 950 - Fond très sombre mais pas noir */
+    --foreground: #f8fafc; /* Slate 50 */
+
+    --primary: #3b82f6; /* Blue 500 - Plus lumineux pour le dark mode */
+    --primary-foreground: #ffffff;
+
+    --muted: #1e293b; /* Slate 800 */
+    --muted-foreground: #94a3b8; /* Slate 400 */
+
+    --border: #1e293b; /* Slate 800 */
+    
+    --danger: #f87171; /* Red 400 */
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  /* Lissage des polices pour un rendu plus pro */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
