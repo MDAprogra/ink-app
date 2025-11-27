@@ -1,11 +1,32 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
+import Search from "@/components/Search"; // <--- Import du composant
 
-export default async function CataloguePage() {
-  // 1. Récupération des données avec la relation Stock
+// Next.js 15 : searchParams est une Promise qu'il faut attendre
+interface PageProps {
+  searchParams: Promise<{
+    q?: string;
+  }>;
+}
+
+export default async function CataloguePage({ searchParams }: PageProps) {
+  // 1. Récupération du terme de recherche
+  const params = await searchParams;
+  const query = params.q || "";
+
+  // 2. Requête filtrée
   const articles = await db.catalogue.findMany({
+    where: {
+      OR: [
+        // On cherche dans le nom, les références ou le fournisseur
+        { nom: { contains: query } }, 
+        { referenceInterfas: { contains: query } },
+        { referenceFournisseur: { contains: query } },
+        { fournisseur: { contains: query } },
+      ],
+    },
     include: {
-      stocks: true, // On récupère les stocks associés pour calculer le total
+      stocks: true,
     },
     orderBy: {
       nom: "asc",
@@ -15,17 +36,25 @@ export default async function CataloguePage() {
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
       {/* En-tête de la page */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
            <h1 className="text-3xl font-bold text-foreground">Catalogue</h1>
            <p className="text-muted-fg mt-1">Gérez vos références et consultez les stocks.</p>
         </div>
-        <Link 
-          href="/catalogue/nouveau" 
-          className="bg-primary text-primary-fg hover:opacity-90 px-4 py-2 rounded-md transition shadow-sm"
-        >
-          + Nouvel Article
-        </Link>
+        
+        <div className="flex w-full md:w-auto gap-3">
+            {/* BARRE DE RECHERCHE */}
+            <div className="w-full md:w-64">
+                <Search placeholder="Rechercher..." />
+            </div>
+
+            <Link 
+            href="/catalogue/nouveau" 
+            className="bg-primary text-primary-fg hover:opacity-90 px-4 py-2 rounded-md transition shadow-sm whitespace-nowrap flex items-center justify-center"
+            >
+            + Nouvel Article
+            </Link>
+        </div>
       </div>
 
       {/* Tableau des données */}
@@ -46,15 +75,12 @@ export default async function CataloguePage() {
               {articles.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-10 text-center text-muted-fg">
-                    Aucun article dans le catalogue pour le moment.
+                    {query ? `Aucun résultat pour "${query}"` : "Aucun article dans le catalogue pour le moment."}
                   </td>
                 </tr>
               ) : (
                 articles.map((article) => {
-                  // Calcul du stock total (somme des entrées stock pour cet article)
                   const stockTotal = article.stocks.reduce((acc, stock) => acc + stock.quantite, 0);
-                  
-                  // Conversion du Decimal pour l'affichage
                   const stockSecu = Number(article.stockSecurite);
                   const isLowStock = stockTotal <= stockSecu;
 
@@ -79,7 +105,7 @@ export default async function CataloguePage() {
                         <div className="text-sm text-foreground">{article.fournisseur}</div>
                       </td>
 
-                      {/* Stock Calculé avec indicateur visuel */}
+                      {/* Stock Calculé */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           isLowStock ? "bg-red-100 text-red-800 border border-red-200" : "bg-green-100 text-green-800 border border-green-200"
@@ -88,14 +114,13 @@ export default async function CataloguePage() {
                         </span>
                       </td>
 
-                      {/* Stock Sécurité (Decimal) */}
+                      {/* Stock Sécurité */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-fg">
                         {stockSecu}
                       </td>
 
                       {/* Actions */}
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        {/* NOUVEAU : Bouton d'action rapide Stock */}
                         <Link
                           href={`/catalogue/${article.id}/mouvement`}
                           className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-orange-700 bg-orange-100 hover:bg-orange-200 mr-4 transition-colors"
@@ -103,16 +128,12 @@ export default async function CataloguePage() {
                         >
                           +/- Stock
                         </Link>
-
-                        {/* Lien Voir (Optimisé avec Link) */}
                         <Link 
                           href={`/catalogue/${article.id}`} 
                           className="text-primary hover:text-primary/80 mr-4 transition-colors"
                         >
                           Voir
                         </Link>
-
-                        {/* Lien Éditer (Optimisé avec Link) */}
                         <Link 
                           href={`/catalogue/${article.id}/edit`} 
                           className="text-muted-fg hover:text-foreground transition-colors"
