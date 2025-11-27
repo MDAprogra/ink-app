@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Catalogue {
+  id  Int @id @default(autoincrement())
+  nom String
+  description String?
+  referenceInterfas    String?  @unique @map("reference_interfas")
+  referenceFournisseur String   @map("reference_fournisseur")
+  fournisseur String
+  type String?
+  stockSecurite        Decimal  @default(0) @map("stock_securite") 
+  dateCreation         DateTime @default(now()) @map("date_creation")
+  dureeConservation Int? @map("duree_conservation")
+  couleur String?
+  stocks Stock[]
+
+  @@map("catalogue")
+}
+
+model Stock {
+  id Int @id @default(autoincrement())
+  quantite Int
+  dateReapprovisionnement DateTime @map("date_reapprovisionnement")
+  idCatalogue Int @map("id_catalogue")
+  catalogue Catalogue @relation(fields: [idCatalogue], references: [id], onDelete: Cascade)
+  mouvements Mouvement[]
+
+  @@map("stock")
+}
+
+model Mouvement{
+  id Int @id @default(autoincrement())
+  type String
+  quantite Int
+  date DateTime @default(now())
+  idStock Int @map("id_stock")
+  stock Stock @relation(fields: [idStock], references: [id], onDelete: Cascade)
+
+  @@map("mouvement")
+}
