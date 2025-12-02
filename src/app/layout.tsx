@@ -35,7 +35,7 @@ export default function RootLayout({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 justify-between items-center">
               <div className="flex gap-8 items-center">
-                <Link href="/catalogue" className="text-xl font-bold text-primary">
+                <Link href="/" className="text-xl font-bold text-primary">
                   📦 InkStock
                 </Link>
                 <div className="hidden md:flex gap-6 text-sm font-medium">
