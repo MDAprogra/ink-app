@@ -95,7 +95,7 @@ export default async function NewMouvementPage({ params }: PageProps) {
         <MouvementForm 
           stocks={article.stocks.map(s => ({
             id: s.id,
-            quantite: s.quantite,
+            quantite: Number(s.quantite),
             date: s.dateReapprovisionnement
           }))} 
           articleId={articleId}
