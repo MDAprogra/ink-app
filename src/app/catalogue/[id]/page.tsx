@@ -36,7 +36,8 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
   }
 
   // 3. Calculs simples pour l'affichage
-  const stockTotal = article.stocks.reduce((acc, s) => acc + s.quantite, 0);
+  // CORRECTION ICI : Conversion explicite de Decimal vers Number
+  const stockTotal = article.stocks.reduce((acc, s) => acc + Number(s.quantite), 0);
   const stockSecurite = Number(article.stockSecurite);
   const isLowStock = stockTotal <= stockSecurite;
   
@@ -152,7 +153,8 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-foreground">
-                        {mvt.type === 'SORTIE' ? '-' : '+'}{mvt.quantite}
+                        {/* Correction d'affichage Decimal -> Number */}
+                        {mvt.type === 'SORTIE' ? '-' : '+'}{Number(mvt.quantite)}
                       </td>
                     </tr>
                   ))
@@ -191,12 +193,16 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
                  {article.stocks.map((stock, index) => (
                     <div key={stock.id} className="text-sm border border-border p-2 rounded bg-muted/10 flex justify-between">
                        <span>Lot #{stock.id}</span>
-                       <span className="font-semibold">{stock.quantite} unités</span>
+                       {/* Correction d'affichage Decimal -> Number */}
+                       <span className="font-semibold">{Number(stock.quantite)} unités</span>
                     </div>
                  ))}
               </div>
 
-            <Link href={`/catalogue/${article.id}/mouvement`} className="block w-full text-center ...">
+            <Link 
+              href={`/catalogue/${article.id}/mouvement`} 
+              className="block w-full py-3 text-center bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg shadow-md transition-colors mt-4"
+            >
                 Faire un mouvement de stock
             </Link>
             </div>
