@@ -18,11 +18,12 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
         JsBarcode(barcodeRef.current, reference, {
           format: "CODE128",
           lineColor: "#000",
-          width: 2,
-          height: 50,
+          width: 1.3,        // Réduit pour rentrer dans 50mm (standard est 2)
+          height: 45,        // Augmenté car on a plus de place sans le nom (était 35)
           displayValue: true,
-          fontSize: 14,
-          margin: 10,
+          fontSize: 11,      // Police plus petite
+          textMargin: 2,     // Marge entre barres et texte réduite
+          margin: 0,         // Marge globale à 0 pour laisser le CSS gérer
         });
       } catch (e) {
         console.error("Erreur génération code-barres", e);
@@ -36,49 +37,65 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
     if (!svgContent) return;
 
     // 2. On ouvre une fenêtre vierge pour l'impression
-    const printWindow = window.open("", "_blank", "width=500,height=300");
+    const printWindow = window.open("", "_blank", "width=400,height=200");
     if (!printWindow) return;
 
     // 3. On écrit le HTML spécifique pour l'étiquette
     printWindow.document.write(`
+      <!DOCTYPE html>
       <html>
         <head>
           <title>Impression Étiquette - ${reference}</title>
           <style>
+            /* Configuration précise de la page pour l'imprimante thermique */
+            @page {
+              size: 50mm 19mm;
+              margin: 0;
+            }
+            
             body {
+              margin: 0;
+              padding: 0;
+              width: 50mm;
+              height: 19mm;
               display: flex;
               flex-direction: column;
               align-items: center;
               justify-content: center;
-              height: 100vh;
-              margin: 0;
               font-family: Arial, sans-serif;
+              overflow: hidden; /* Empêche les débordements sur une 2e page */
             }
+
             .label-container {
-              text-align: center;
-              border: 1px dashed #ccc; /* Bordure pour visualiser la zone, peut être retirée */
-              padding: 10px;
-              max-width: 100%;
+              width: 100%;
+              height: 100%;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              /* Petite marge de sécurité interne pour ne pas coller aux bords physiques */
+              padding: 1mm; 
+              box-sizing: border-box;
             }
-            h2 { font-size: 16px; margin: 0 0 5px 0; }
-            /* Cache les éléments non pertinents à l'impression */
-            @media print {
-              @page { margin: 0; size: auto; }
-              body { margin: 1cm; }
-              .label-container { border: none; }
+
+            svg {
+              max-width: 48mm; /* Force le SVG à ne pas dépasser la largeur */
+              height: auto;
+              display: block;
             }
           </style>
         </head>
         <body>
           <div class="label-container">
-            <h2>${nom}</h2>
             ${svgContent}
           </div>
           <script>
-            // Lance l'impression automatiquement et ferme la fenêtre après
             window.onload = () => {
               window.print();
-              window.onafterprint = () => window.close();
+              // Petit délai pour assurer que l'ordre d'impression est parti avant de fermer
+              setTimeout(() => {
+                window.close();
+              }, 500);
             };
           </script>
         </body>
@@ -96,7 +113,7 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
         onClick={handlePrint}
         className="w-full py-3 text-center bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-foreground font-semibold rounded-lg shadow-sm transition-colors mt-4 flex items-center justify-center gap-2"
       >
-        <span>🖨️</span> Imprimer Étiquette
+        <span>🖨️</span> Imprimer Étiquette (50x19mm)
       </button>
     </>
   );
