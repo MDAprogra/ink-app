@@ -29,7 +29,7 @@ model Catalogue {
 
 model Stock {
   id Int @id @default(autoincrement())
-  quantite Int
+  quantite Decimal @db.Decimal(10, 3)
   dateReapprovisionnement DateTime @map("date_reapprovisionnement")
   idCatalogue Int @map("id_catalogue")
   catalogue Catalogue @relation(fields: [idCatalogue], references: [id], onDelete: Cascade)
@@ -41,7 +41,7 @@ model Stock {
 model Mouvement{
   id Int @id @default(autoincrement())
   type String
-  quantite Int
+  quantite Decimal @db.Decimal(10, 3)
   date DateTime @default(now())
   idStock Int @map("id_stock")
   stock Stock @relation(fields: [idStock], references: [id], onDelete: Cascade)
