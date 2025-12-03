@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import PrintLabelButton from "@/components/PrintLabelButton";
 
 // Dans Next.js 15+, params est une Promise qu'il faut attendre
 interface PageProps {
@@ -44,6 +45,10 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
   // On récupère tous les mouvements de tous les stocks pour faire une timeline globale
   const tousMouvements = article.stocks.flatMap(s => s.mouvements)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  // Détermination de la référence à afficher sur le code-barres
+  // Priorité : Ref Interfas > Ref Fournisseur > ID
+  const referencePourCodeBarre = article.referenceInterfas || article.referenceFournisseur || `ID-${article.id}`;
 
   return (
     <div className="max-w-6xl mx-auto p-8 space-y-8">
@@ -207,8 +212,13 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
             </Link>
             </div>
           </div>
+          
+          {/* Intégration du bouton d'impression avec les props requises */}
+          <PrintLabelButton 
+            reference={referencePourCodeBarre} 
+            nom={article.nom} 
+          />
         </div>
-
       </div>
     </div>
   );
