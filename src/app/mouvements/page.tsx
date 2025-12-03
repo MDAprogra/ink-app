@@ -94,7 +94,7 @@ export default async function MouvementsPage() {
                         <span className={`text-sm font-bold ${
                           isEntree ? "text-green-600" : "text-orange-600"
                         }`}>
-                          {isEntree ? "+" : "-"}{mvt.quantite}
+                          {isEntree ? "+" : "-"}{Number(mvt.quantite)}
                         </span>
                       </td>
 
