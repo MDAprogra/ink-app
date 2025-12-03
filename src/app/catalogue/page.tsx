@@ -80,7 +80,7 @@ export default async function CataloguePage({ searchParams }: PageProps) {
                 </tr>
               ) : (
                 articles.map((article) => {
-                  const stockTotal = article.stocks.reduce((acc, stock) => acc + stock.quantite, 0);
+                  const stockTotal = article.stocks.reduce((acc, stock) => acc + Number(s.quantite), 0);
                   const stockSecu = Number(article.stockSecurite);
                   const isLowStock = stockTotal <= stockSecu;
 
