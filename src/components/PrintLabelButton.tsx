@@ -18,12 +18,11 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
         JsBarcode(barcodeRef.current, reference, {
           format: "CODE128",
           lineColor: "#000",
-          width: 1.3,        // Réduit pour rentrer dans 50mm (standard est 2)
-          height: 45,        // Hauteur des barres
+          width: 2,
+          height: 50,
           displayValue: true,
-          fontSize: 11,      // Police plus petite
-          textMargin: 2,     // Marge entre barres et texte réduite
-          margin: 0,         // Marge globale à 0 pour laisser le CSS gérer
+          fontSize: 14,
+          margin: 10,
         });
       } catch (e) {
         console.error("Erreur génération code-barres", e);
@@ -37,67 +36,49 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
     if (!svgContent) return;
 
     // 2. On ouvre une fenêtre vierge pour l'impression
-    const printWindow = window.open("", "_blank", "width=400,height=200");
+    const printWindow = window.open("", "_blank", "width=500,height=300");
     if (!printWindow) return;
 
     // 3. On écrit le HTML spécifique pour l'étiquette
     printWindow.document.write(`
-      <!DOCTYPE html>
       <html>
         <head>
           <title>Impression Étiquette - ${reference}</title>
           <style>
-            /* Configuration précise de la page pour l'imprimante thermique */
-            @page {
-              size: 50mm 19mm;
-              margin: 0;
-            }
-            
             body {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
               margin: 0;
-              padding: 0;
-              width: 50mm;
-              height: 19mm;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
               font-family: Arial, sans-serif;
-              overflow: hidden;
             }
-
             .label-container {
-              width: 100%;
-              height: 100%;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              padding: 1mm; 
-              box-sizing: border-box;
-              
-              /* ROTATION DU CODE BARRE ICI */
-              /* Changez 180deg par 90deg ou 270deg si nécessaire selon votre imprimante */
-              transform: rotate(180deg);
+              text-align: center;
+              border: 1px dashed #ccc; /* Bordure pour visualiser la zone, peut être retirée */
+              padding: 10px;
+              max-width: 100%;
             }
-
-            svg {
-              max-width: 48mm;
-              height: auto;
-              display: block;
+            h2 { font-size: 16px; margin: 0 0 5px 0; }
+            /* Cache les éléments non pertinents à l'impression */
+            @media print {
+              @page { margin: 0; size: auto; }
+              body { margin: 1cm; }
+              .label-container { border: none; }
             }
           </style>
         </head>
         <body>
           <div class="label-container">
+            <h2>${nom}</h2>
             ${svgContent}
           </div>
           <script>
+            // Lance l'impression automatiquement et ferme la fenêtre après
             window.onload = () => {
               window.print();
-              setTimeout(() => {
-                window.close();
-              }, 500);
+              window.onafterprint = () => window.close();
             };
           </script>
         </body>
@@ -108,13 +89,14 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
 
   return (
     <>
+      {/* Le code-barres est généré mais caché (display: none) dans la page principale */}
       <svg ref={barcodeRef} style={{ display: "none" }}></svg>
 
       <button
         onClick={handlePrint}
         className="w-full py-3 text-center bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-foreground font-semibold rounded-lg shadow-sm transition-colors mt-4 flex items-center justify-center gap-2"
       >
-        <span>🖨️</span> Imprimer Étiquette (50x19mm)
+        <span>🖨️</span> Imprimer Étiquette
       </button>
     </>
   );
