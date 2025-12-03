@@ -18,7 +18,7 @@ export default async function NewMouvementPage({ params }: PageProps) {
     where: { id: articleId },
     include: {
       stocks: {
-        where: { quantite: { gt: 0 } }, // On récupère seulement les lots qui ont encore du stock (pour l'affichage propre)
+        where: { quantite: { gt: 0 } }, // On récupère seulement les lots qui ont encore du stock
         orderBy: { dateReapprovisionnement: 'desc' }
       }
     }
@@ -32,7 +32,10 @@ export default async function NewMouvementPage({ params }: PageProps) {
 
     const type = formData.get("type") as string;
     const stockIdRaw = formData.get("stockId") as string;
-    const quantite = parseInt(formData.get("quantite") as string);
+    
+    // CORRECTION MAJEURE ICI : parseInt -> Number
+    // parseInt tronque les décimales (1.5 devient 1). Number garde 1.5.
+    const quantite = Number(formData.get("quantite")); 
     const articleIdForm = parseInt(formData.get("articleId") as string);
 
     if (!quantite || quantite <= 0) return;
@@ -46,7 +49,7 @@ export default async function NewMouvementPage({ params }: PageProps) {
         const newStock = await tx.stock.create({
           data: {
             idCatalogue: articleIdForm,
-            quantite: quantite, // On initialise avec la quantité entrée
+            quantite: quantite, // Prisma convertira le Number JS en Decimal BDD
             dateReapprovisionnement: new Date(),
           }
         });
@@ -56,13 +59,14 @@ export default async function NewMouvementPage({ params }: PageProps) {
       else {
         targetStockId = parseInt(stockIdRaw);
         
-        // On calcule l'incrément (+10 ou -10)
+        // On calcule l'incrément (+1.5 ou -1.5)
         const increment = type === "ENTREE" ? quantite : -quantite;
 
         await tx.stock.update({
           where: { id: targetStockId },
           data: {
-            quantite: { increment: increment } // Prisma gère l'addition atomique
+            // Prisma gère très bien l'incrément avec des floats sur un champ Decimal
+            quantite: { increment: increment } 
           }
         });
       }
@@ -95,6 +99,7 @@ export default async function NewMouvementPage({ params }: PageProps) {
         <MouvementForm 
           stocks={article.stocks.map(s => ({
             id: s.id,
+            // Conversion Decimal -> Number pour le formulaire React
             quantite: Number(s.quantite),
             date: s.dateReapprovisionnement
           }))} 
