@@ -18,12 +18,12 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
         JsBarcode(barcodeRef.current, reference, {
           format: "CODE128",
           lineColor: "#000",
-          width: 2,
-          height: 50,
-          displayValue: true,
-          fontSize: 14,
-          margin: 10,
+          width: 1.2,           // Plus fin = moins large
+          height: 18,           // Pour tenir dans 19 mm
+          displayValue: false,  // Cache le texte (sinon dépasse)
+          margin: 0,
         });
+
       } catch (e) {
         console.error("Erreur génération code-barres", e);
       }
@@ -55,10 +55,12 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
               font-family: Arial, sans-serif;
             }
             .label-container {
-              text-align: center;
-              border: 1px dashed #ccc; /* Bordure pour visualiser la zone, peut être retirée */
-              padding: 10px;
-              max-width: 100%;
+               width: 50mm;
+              height: 19mm;
+              padding: 0;
+              display: flex;
+              align-items: center;
+              justify-content: center;
             }
             h2 { font-size: 16px; margin: 0 0 5px 0; }
             /* Cache les éléments non pertinents à l'impression */
