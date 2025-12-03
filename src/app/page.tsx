@@ -18,7 +18,7 @@ export default async function Home() {
   });
 
   const lowStockCount = articles.filter((article) => {
-    const totalStock = article.stocks.reduce((acc, s) => acc + s.quantite, 0);
+    const totalStock = article.stocks.reduce((acc, s) => acc + Number(s.quantite), 0);
     return totalStock <= Number(article.stockSecurite);
   }).length;
 
