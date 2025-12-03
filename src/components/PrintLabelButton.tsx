@@ -19,7 +19,7 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
           format: "CODE128",
           lineColor: "#000",
           width: 1.3,        // Réduit pour rentrer dans 50mm (standard est 2)
-          height: 45,        // Augmenté car on a plus de place sans le nom (était 35)
+          height: 45,        // Hauteur des barres
           displayValue: true,
           fontSize: 11,      // Police plus petite
           textMargin: 2,     // Marge entre barres et texte réduite
@@ -63,7 +63,7 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
               align-items: center;
               justify-content: center;
               font-family: Arial, sans-serif;
-              overflow: hidden; /* Empêche les débordements sur une 2e page */
+              overflow: hidden;
             }
 
             .label-container {
@@ -73,13 +73,16 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
               flex-direction: column;
               align-items: center;
               justify-content: center;
-              /* Petite marge de sécurité interne pour ne pas coller aux bords physiques */
               padding: 1mm; 
               box-sizing: border-box;
+              
+              /* ROTATION DU CODE BARRE ICI */
+              /* Changez 180deg par 90deg ou 270deg si nécessaire selon votre imprimante */
+              transform: rotate(180deg);
             }
 
             svg {
-              max-width: 48mm; /* Force le SVG à ne pas dépasser la largeur */
+              max-width: 48mm;
               height: auto;
               display: block;
             }
@@ -92,7 +95,6 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
           <script>
             window.onload = () => {
               window.print();
-              // Petit délai pour assurer que l'ordre d'impression est parti avant de fermer
               setTimeout(() => {
                 window.close();
               }, 500);
@@ -106,7 +108,6 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
 
   return (
     <>
-      {/* Le code-barres est généré mais caché (display: none) dans la page principale */}
       <svg ref={barcodeRef} style={{ display: "none" }}></svg>
 
       <button
