@@ -71,7 +71,6 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
         </head>
         <body>
           <div class="label-container">
-            <h2>${nom}</h2>
             ${svgContent}
           </div>
           <script>
