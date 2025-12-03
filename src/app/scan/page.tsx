@@ -14,14 +14,28 @@ export default async function ScanPage({ searchParams }: ScanPageProps) {
   async function handleScan(formData: FormData) {
     "use server";
     
-    const code = formData.get("code") as string;
+    // On récupère le code brut
+    let code = formData.get("code") as string;
     if (!code) return;
 
-    // Recherche de l'article
+    // --- LOGIQUE DE NETTOYAGE DU CODE BARRE ---
+    // Si le code commence par "91" (ex: 91YEP30007428N...)
+    if (code.startsWith("91")) {
+      // .substring(2, 14) signifie :
+      // - On démarre à l'index 2 (on saute le 0 et le 1, donc le '9' et le '1')
+      // - On s'arrête à l'index 14 (donc on prend 12 caractères exactement : 14 - 2 = 12)
+      // Cela retire le préfixe et tout ce qui dépasse après les 12 chars utiles
+      code = code.substring(2, 14);
+    }
+    // ------------------------------------------
+
+    // Recherche de l'article avec le code NETTOYÉ
     const article = await db.catalogue.findFirst({
       where: {
         OR: [
+          // On vérifie si c'est un ID numérique (ex: "15")
           { id: !isNaN(parseInt(code)) ? parseInt(code) : undefined },
+          // On cherche dans les références texte
           { referenceInterfas: code },
           { referenceFournisseur: code }
         ]
@@ -31,7 +45,7 @@ export default async function ScanPage({ searchParams }: ScanPageProps) {
     if (article) {
       redirect(`/catalogue/${article.id}/mouvement`);
     } else {
-      // SI NON TROUVÉ : On redirige avec le code scanné dans l'URL
+      // SI NON TROUVÉ : On redirige avec le code NETTOYÉ dans l'URL
       redirect(`/scan?error=not_found&code=${encodeURIComponent(code)}`);
     }
   }
