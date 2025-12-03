@@ -1,4 +1,3 @@
-// src/components/MouvementForm.tsx
 "use client";
 
 import { useState } from "react";
@@ -19,7 +18,10 @@ interface MouvementFormProps {
 export default function MouvementForm({ stocks, articleId, onSubmit }: MouvementFormProps) {
   const [type, setType] = useState<"ENTREE" | "SORTIE">("ENTREE");
   const [selectedStockId, setSelectedStockId] = useState<string>("nouveau");
-  const [quantite, setQuantite] = useState<number>(1);
+  
+  // CHANGEMENT 1 : On utilise un string pour gérer la saisie (ex: "1.5")
+  // Cela évite que React ne force le formatage pendant que l'utilisateur tape "."
+  const [quantite, setQuantite] = useState<string>("1");
 
   // Calcul du max disponible si c'est une sortie
   const stockSelectionne = stocks.find(s => s.id.toString() === selectedStockId);
@@ -86,11 +88,16 @@ export default function MouvementForm({ stocks, articleId, onSubmit }: Mouvement
         <input
           type="number"
           name="quantite"
-          min="1"
+          // CHANGEMENT 2 : min très bas pour autoriser 0.5 par exemple
+          min="0.001"
+          // CHANGEMENT 3 : step obligatoire pour les décimaux (3 chiffres après la virgule comme dans Prisma)
+          step="0.001"
           max={maxQuantite}
           value={quantite}
-          onChange={(e) => setQuantite(Number(e.target.value))}
+          // CHANGEMENT 4 : On garde la valeur en string pendant la saisie
+          onChange={(e) => setQuantite(e.target.value)}
           className="w-full rounded-md border border-border bg-background px-3 py-2 text-lg font-bold focus:ring-2 focus:ring-primary"
+          required
         />
         {type === "SORTIE" && stockSelectionne && (
            <p className="text-xs text-muted-fg">
