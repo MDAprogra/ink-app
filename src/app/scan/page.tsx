@@ -8,28 +8,32 @@ interface ScanPageProps {
 }
 
 export default async function ScanPage({ searchParams }: ScanPageProps) {
+  // On récupère les paramètres d'URL (qui contiennent le code nettoyé après redirection)
   const { error, code: scannedCode } = await searchParams;
 
   // La Server Action qui gère le scan
   async function handleScan(formData: FormData) {
     "use server";
     
-    // On récupère le code brut
+    // 1. On récupère le code brut saisi ou scanné
     let code = formData.get("code") as string;
+    
     if (!code) return;
+    
+    // Pour éviter les espaces accidentels (souvent le cas avec les douchettes)
+    code = code.trim();
 
-    // --- LOGIQUE DE NETTOYAGE DU CODE BARRE ---
+    // 2. --- LOGIQUE DE NETTOYAGE DU CODE BARRE ---
     // Si le code commence par "91" (ex: 91YEP30007428N...)
     if (code.startsWith("91")) {
-      // .substring(2, 14) signifie :
-      // - On démarre à l'index 2 (on saute le 0 et le 1, donc le '9' et le '1')
-      // - On s'arrête à l'index 14 (donc on prend 12 caractères exactement : 14 - 2 = 12)
-      // Cela retire le préfixe et tout ce qui dépasse après les 12 chars utiles
+      // On retire le préfixe '91' et on garde 12 caractères
+      // La variable 'code' est écrasée avec la nouvelle valeur
       code = code.substring(2, 14);
     }
+    // À partir d'ici, la variable 'code' contient la version propre (12 chars)
     // ------------------------------------------
 
-    // Recherche de l'article avec le code NETTOYÉ
+    // 3. Recherche de l'article avec le code NETTOYÉ
     const article = await db.catalogue.findFirst({
       where: {
         OR: [
@@ -43,9 +47,11 @@ export default async function ScanPage({ searchParams }: ScanPageProps) {
     });
 
     if (article) {
+      // Trouvé : on redirige vers le mouvement
       redirect(`/catalogue/${article.id}/mouvement`);
     } else {
-      // SI NON TROUVÉ : On redirige avec le code NETTOYÉ dans l'URL
+      // PAS Trouvé : On redirige avec le code NETTOYÉ dans l'URL
+      // Comme 'code' a été modifié plus haut, c'est bien la version courte qui passe dans l'URL
       redirect(`/scan?error=not_found&code=${encodeURIComponent(code)}`);
     }
   }
@@ -69,14 +75,13 @@ export default async function ScanPage({ searchParams }: ScanPageProps) {
           </p>
         </div>
 
-        {/* Formulaire de scan (toujours visible pour scanner un autre truc) */}
+        {/* Formulaire de scan */}
         <form action={handleScan} className="relative">
           <input
             type="text"
             name="code"
             autoFocus
-            // Si on a fait une erreur, on vide le champ pour le scan suivant
-            // Sinon on peut laisser vide
+            // Key permet de forcer le rafraichissement du champ si le code change
             key={scannedCode || "init"} 
             placeholder="Scannez ici..."
             className={`w-full text-center text-2xl py-4 rounded-lg border-2 bg-background focus:outline-none focus:ring-4 transition-all ${
@@ -89,25 +94,26 @@ export default async function ScanPage({ searchParams }: ScanPageProps) {
         </form>
 
         {/* ZONE D'ACTION : Création si non trouvé */}
+        {/* Ici 'scannedCode' vient de l'URL, donc c'est le code nettoyé */}
         {error === "not_found" && scannedCode && (
           <div className="animate-in fade-in slide-in-from-top-4 duration-300 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg space-y-3">
             <p className="text-sm text-red-800 dark:text-red-200 font-medium">
               Voulez-vous ajouter ce produit au catalogue ?
             </p>
             <Link
-              // On envoie le code vers la page "Nouveau" via un paramètre URL
+              // On passe le code nettoyé à la page de création
               href={`/catalogue/nouveau?ref=${scannedCode}`}
               className="block w-full py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-md transition shadow-sm"
             >
-              + Créer l'article
+              + Créer l'article ({scannedCode})
             </Link>
           </div>
         )}
 
         <div className="border-t border-border pt-6">
-            <a href="/catalogue" className="text-sm text-primary hover:underline">
+            <Link href="/catalogue" className="text-sm text-primary hover:underline">
                 Retour au catalogue manuel
-            </a>
+            </Link>
         </div>
       </div>
     </div>
