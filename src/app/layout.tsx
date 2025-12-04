@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Inter } from "next/font/google";
 import { getServerSession } from "next-auth"; // Import nécessaire
 import { authOptions } from "@/lib/auth";     // Import de ta config
+import LogoutButton from "@/components/LogoutButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,13 +53,18 @@ export default async function RootLayout({
               
               <div className="flex items-center gap-4">
                 {session?.user ? (
-                  <div className="hidden sm:flex flex-col items-end mr-2 border-r border-border pr-4">
-                    <span className="text-sm font-bold leading-none">
-                      {session.user.name || "Utilisateur"}
-                    </span>
-                    <span className="text-[10px] font-mono text-muted-fg bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded mt-1 uppercase tracking-wider">
-                      {session.user.role}
-                    </span>
+                  // Conteneur Flex pour aligner Texte + Bouton Logout
+                  <div className="flex items-center gap-3 mr-2 border-r border-border pr-4">
+                    <div className="hidden sm:flex flex-col items-end">
+                      <span className="text-sm font-bold leading-none">
+                        {session.user.name || "Utilisateur"}
+                      </span>
+                      <span className="text-[10px] font-mono text-muted-fg bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded mt-1 uppercase tracking-wider">
+                        {session.user.role}
+                      </span>
+                    </div>
+                    {/* Le bouton de déconnexion est ici */}
+                    <LogoutButton />
                   </div>
                 ) : (
                   <Link 
