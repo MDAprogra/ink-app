@@ -25,11 +25,11 @@ export default async function ScanPage({ searchParams }: ScanPageProps) {
 
     // 2. --- LOGIQUE DE NETTOYAGE DU CODE BARRE ---
     // Si le code commence par "91" (ex: 91YEP30007428N...)
-    if (code.startsWith("91")) {
-      // On retire le préfixe '91' et on garde 12 caractères
-      // La variable 'code' est écrasée avec la nouvelle valeur
-      code = code.substring(2, 14);
-    }
+    // if (code.startsWith("91")) {
+    //   // On retire le préfixe '91' et on garde 12 caractères
+    //   // La variable 'code' est écrasée avec la nouvelle valeur
+    //   code = code.substring(2, 14);
+    // }
     // À partir d'ici, la variable 'code' contient la version propre (12 chars)
     // ------------------------------------------
 
@@ -38,7 +38,7 @@ export default async function ScanPage({ searchParams }: ScanPageProps) {
       where: {
         OR: [
           // On vérifie si c'est un ID numérique (ex: "15")
-          { id: !isNaN(parseInt(code)) ? parseInt(code) : undefined },
+          // { id: !isNaN(parseInt(code)) ? parseInt(code) : undefined },
           // On cherche dans les références texte
           { referenceInterfas: code },
           { referenceFournisseur: code }
