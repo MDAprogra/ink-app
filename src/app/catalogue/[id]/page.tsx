@@ -77,6 +77,7 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
           >
             Retour
           </Link>
+          
           <Link 
             href={`/catalogue/${article.id}/edit`}
             className="px-4 py-2 bg-primary text-primary-fg rounded-md hover:opacity-90 transition shadow-sm"

@@ -6,19 +6,16 @@ export const ROLES = {
 } as const;
 
 // --- DÉFINITION DES RÈGLES ---
-// C'est ici que vous centralisez "Qui a le droit de faire Quoi"
 const RULES = {
-  // Voir l'historique : Owner et Manager
-  viewMovements: [ROLES.OWNER, ROLES.MANAGER],
-  
-  // Ajouter un article : Owner uniquement
-  addArticle: [ROLES.OWNER],
-  
-  // Gérer le stock (Scanner/Entrée/Sortie) : Tout le monde connecté
-  manageStock: [ROLES.OWNER, ROLES.MANAGER, ROLES.USER],
-  
-  // Supprimer un article (futur)
-  deleteArticle: [ROLES.OWNER],
+    // --- CATALOGUE --- //
+    viewDetailArticle: [ROLES.OWNER,ROLES.MANAGER, ROLES.USER],
+    editArticle: [ROLES.OWNER, ROLES.MANAGER],
+    archiveArticle: [ROLES.OWNER],
+    addArticle: [ROLES.OWNER, ROLES.MANAGER],
+
+    // --- MOUVEMENT --- //
+    doArticleMovement: [ROLES.OWNER,ROLES.MANAGER, ROLES.USER],
+    viewArticleMovement: [ROLES.OWNER,ROLES.MANAGER],
 };
 
 /**
@@ -34,8 +31,12 @@ function hasAccess(role: string | undefined | null, allowedRoles: readonly strin
  * Utilisation : if (permissions.canViewMovements(session.user.role)) { ... }
  */
 export const permissions = {
-  canViewMovements: (role?: string | null) => hasAccess(role, RULES.viewMovements),
+  canViewDetailArticle: (role?: string | null) => hasAccess(role, RULES.viewDetailArticle),
+  canEditArticle: (role?: string | null) => hasAccess(role, RULES.editArticle),
   canAddArticle: (role?: string | null) => hasAccess(role, RULES.addArticle),
-  canManageStock: (role?: string | null) => hasAccess(role, RULES.manageStock),
-  canDeleteArticle: (role?: string | null) => hasAccess(role, RULES.deleteArticle),
+  canArchiveArticle: (role?: string | null) => hasAccess(role, RULES.archiveArticle),
+
+  canDoArticleMovement: (role?: string | null) => hasAccess(role, RULES.doArticleMovement),
+  canViewArticleMovement: (role?: string | null) => hasAccess(role, RULES.viewArticleMovement),
+
 };

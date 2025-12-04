@@ -136,18 +136,25 @@ export default async function CataloguePage({ searchParams }: PageProps) {
                         >
                           +/- Stock
                         </Link>
+                        {permissions.canViewDetailArticle(session?.user.role) && (
                         <Link 
                           href={`/catalogue/${article.id}`} 
                           className="text-primary hover:text-primary/80 mr-4 transition-colors"
                         >
                           Voir
-                        </Link>
+                        </Link>)}:(<span className="text-gray-300 dark:text-gray-700 mr-4 cursor-not-allowed" aria-disabled="true">
+                            Voir
+                          </span>)
+
+                        {permissions.canEditArticle(session?.user.role) && (
                         <Link 
                           href={`/catalogue/${article.id}/edit`} 
                           className="text-muted-fg hover:text-foreground transition-colors"
                         >
                           Éditer
-                        </Link>
+                        </Link>)}:(<span className="text-gray-300 dark:text-gray-700 cursor-not-allowed" aria-disabled="true">
+                            Éditer
+                          </span>)
                       </td>
                     </tr>
                   );
