@@ -23,6 +23,7 @@ model Catalogue {
   dureeConservation Int? @map("duree_conservation")
   couleur String?
   actif Boolean @default(true)
+  uniteGestion String?
   stocks Stock[]
 
   @@map("catalogue")
