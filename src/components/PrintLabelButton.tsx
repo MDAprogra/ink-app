@@ -79,7 +79,7 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
         <body>
           <div class="label">
             ${svgContent}
-            <div class="ref">${reference}</div>
+            <div class="ref">${nom}</div>
           </div>
 
           <script>
