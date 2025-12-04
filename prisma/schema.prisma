@@ -22,6 +22,7 @@ model Catalogue {
   dateCreation         DateTime @default(now()) @map("date_creation")
   dureeConservation Int? @map("duree_conservation")
   couleur String?
+  actif Boolean @default(true)
   stocks Stock[]
 
   @@map("catalogue")
@@ -44,7 +45,22 @@ model Mouvement{
   quantite Decimal @db.Decimal(10, 3)
   date DateTime @default(now())
   idStock Int @map("id_stock")
+  idUser Int @map("id_user")
   stock Stock @relation(fields: [idStock], references: [id], onDelete: Cascade)
+  user User @relation(fields: [idUser], references: [id], onDelete: Cascade)
 
   @@map("mouvement")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String?   @unique
+  password  String   // Le mot de passe sera hashé (crypté)
+  name      String? @unique
+  role      String
+  createdAt DateTime @default(now())
+  lastConnect DateTime?
+  mouvements Mouvement[]
+
+  @@map("user")
 }
