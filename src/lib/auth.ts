@@ -50,19 +50,40 @@ export const authOptions: NextAuthOptions = {
           id: user.id + "",
           email: user.email,
           name: user.name,
+          role: user.role
         };
       },
     }),
   ],
-  callbacks: {
-    // Permet d'ajouter l'ID utilisateur à la session côté client
+//   callbacks: {
+//     // Permet d'ajouter l'ID utilisateur à la session côté client
+//     async session({ session, token }) {
+//       if (token && session.user) {
+//         // @ts-ignore
+//         session.user.id = token.sub;
+//       }
+//       return session;
+//     },
+//   },
+//   secret: process.env.NEXTAUTH_SECRET, // À ajouter dans ton .env
+// };
+callbacks: {
+    // 1. On met le rôle dans le Token (JWT)
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
+      return token;
+    },
+    // 2. On met le rôle dans la Session (pour l'utiliser dans les composants)
     async session({ session, token }) {
-      if (token && session.user) {
-        // @ts-ignore
-        session.user.id = token.sub;
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
       }
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET, // À ajouter dans ton .env
+  secret: process.env.NEXTAUTH_SECRET,
 };
