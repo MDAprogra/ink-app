@@ -16,6 +16,8 @@ const RULES = {
     // --- MOUVEMENT --- //
     doArticleMovement: [ROLES.OWNER,ROLES.MANAGER, ROLES.USER],
     viewArticleMovement: [ROLES.OWNER,ROLES.MANAGER],
+    OutputMovement : [ROLES.OWNER,ROLES.MANAGER, ROLES.USER],
+    InputMovement : [ROLES.OWNER,ROLES.MANAGER],
 };
 
 /**
@@ -38,5 +40,6 @@ export const permissions = {
 
   canDoArticleMovement: (role?: string | null) => hasAccess(role, RULES.doArticleMovement),
   canViewArticleMovement: (role?: string | null) => hasAccess(role, RULES.viewArticleMovement),
-
+  canOutputMovement: (role?: string | null) => hasAccess(role, RULES.viewArticleMovement),
+  canInputMovement: (role?: string | null) => hasAccess(role, RULES.InputMovement),
 };
