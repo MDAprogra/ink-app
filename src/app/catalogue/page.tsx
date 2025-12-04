@@ -20,7 +20,6 @@ export default async function CataloguePage({ searchParams }: PageProps) {
   const session = await getServerSession(authOptions);
   
   // CONDITION : Connecté ET rôle = "owner"
-  // (Pensez à vérifier la casse exacte en base de données : "owner" ou "OWNER")
   const canAddArticle = session?.user?.role === "owner";
 
   // 3. Requête filtrée

@@ -74,6 +74,7 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
         <body>
           <div class="label-container">
             ${svgContent}
+            <h4>${nom}</h4>
           </div>
           <script>
             // Lance l'impression automatiquement et ferme la fenêtre après
