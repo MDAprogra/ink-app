@@ -51,8 +51,7 @@ export default async function RootLayout({
               </div>
               
               <div className="flex items-center gap-4">
-                {/* Affichage des infos utilisateur SI connecté */}
-                {session?.user && (
+                {session?.user ? (
                   <div className="hidden sm:flex flex-col items-end mr-2 border-r border-border pr-4">
                     <span className="text-sm font-bold leading-none">
                       {session.user.name || "Utilisateur"}
@@ -61,6 +60,13 @@ export default async function RootLayout({
                       {session.user.role}
                     </span>
                   </div>
+                ) : (
+                  <Link 
+                    href="/login"
+                    className="text-sm font-medium text-muted-fg hover:text-foreground transition mr-2"
+                  >
+                    Se connecter
+                  </Link>
                 )}
 
                 <Link 
