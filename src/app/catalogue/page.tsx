@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
-import Search from "@/components/Search"; // <--- Import du composant
+import Search from "@/components/Search";
+import { getServerSession } from "next-auth"; // 1. Import de la session
+import { authOptions } from "@/lib/auth";     // 1. Import de la config
 
 // Next.js 15 : searchParams est une Promise qu'il faut attendre
 interface PageProps {
@@ -14,7 +16,14 @@ export default async function CataloguePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const query = params.q || "";
 
-  // 2. Requête filtrée
+  // 2. Récupération de la session pour la logique d'affichage
+  const session = await getServerSession(authOptions);
+  
+  // CONDITION : Connecté ET rôle = "owner"
+  // (Pensez à vérifier la casse exacte en base de données : "owner" ou "OWNER")
+  const canAddArticle = session?.user?.role === "owner";
+
+  // 3. Requête filtrée
   const articles = await db.catalogue.findMany({
     where: {
       OR: [
@@ -48,12 +57,15 @@ export default async function CataloguePage({ searchParams }: PageProps) {
                 <Search placeholder="Rechercher..." />
             </div>
 
-            <Link 
-            href="/catalogue/nouveau" 
-            className="bg-primary text-primary-fg hover:opacity-90 px-4 py-2 rounded-md transition shadow-sm whitespace-nowrap flex items-center justify-center"
-            >
-            + Nouvel Article
-            </Link>
+            {/* BOUTON AJOUT - Visible uniquement si canAddArticle est vrai */}
+            {canAddArticle && (
+              <Link 
+                href="/catalogue/nouveau" 
+                className="bg-primary text-primary-fg hover:opacity-90 px-4 py-2 rounded-md transition shadow-sm whitespace-nowrap flex items-center justify-center"
+              >
+                + Nouvel Article
+              </Link>
+            )}
         </div>
       </div>
 
