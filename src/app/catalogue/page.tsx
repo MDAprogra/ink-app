@@ -3,6 +3,7 @@ import Link from "next/link";
 import Search from "@/components/Search";
 import { getServerSession } from "next-auth"; // 1. Import de la session
 import { authOptions } from "@/lib/auth";     // 1. Import de la config
+import { permissions } from "@/lib/permissions";
 
 // Next.js 15 : searchParams est une Promise qu'il faut attendre
 interface PageProps {
@@ -19,9 +20,6 @@ export default async function CataloguePage({ searchParams }: PageProps) {
   // 2. Récupération de la session pour la logique d'affichage
   const session = await getServerSession(authOptions);
   
-  // CONDITION : Connecté ET rôle = "owner"
-  const canAddArticle = session?.user?.role === "owner";
-
   // 3. Requête filtrée
   const articles = await db.catalogue.findMany({
     where: {
@@ -56,8 +54,7 @@ export default async function CataloguePage({ searchParams }: PageProps) {
                 <Search placeholder="Rechercher..." />
             </div>
 
-            {/* BOUTON AJOUT - Visible uniquement si canAddArticle est vrai */}
-            {canAddArticle && (
+            {permissions.canAddArticle(session?.user.role) && (
               <Link 
                 href="/catalogue/nouveau" 
                 className="bg-primary text-primary-fg hover:opacity-90 px-4 py-2 rounded-md transition shadow-sm whitespace-nowrap flex items-center justify-center"

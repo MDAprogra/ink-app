@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import PrintLabelButton from "@/components/PrintLabelButton";
+import ArticleStatusToggle from "@/components/ArticleStatusToggle";
 
 // Dans Next.js 15+, params est une Promise qu'il faut attendre
 interface PageProps {
@@ -69,7 +70,7 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
           <p className="text-muted-fg mt-1">Réf: {article.referenceInterfas || "N/A"}</p>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center">
           <Link 
             href="/catalogue"
             className="px-4 py-2 border border-border rounded-md text-foreground hover:bg-muted transition"
@@ -82,10 +83,18 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
           >
             Modifier
           </Link>
+          
+          {/* Bouton d'archivage intégré ici avec les props requises */}
+          <ArticleStatusToggle 
+            articleId={article.id} 
+            actif={article.actif} 
+            stockTotal={stockTotal} 
+          />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* Application d'un style visuel si l'article est archivé */}
+      <div className={`grid grid-cols-1 md:grid-cols-3 gap-8 transition-opacity ${!article.actif ? "opacity-60 grayscale" : ""}`}>
         
         {/* --- COLONNE GAUCHE : DÉTAILS --- */}
         <div className="md:col-span-2 space-y-6">
@@ -185,7 +194,7 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
                 <span className="font-mono text-foreground">{stockSecurite}</span>
               </div>
 
-              {isLowStock && (
+              {isLowStock && article.actif && (
                 <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm flex items-start gap-2">
                   ⚠️ <strong>Attention :</strong> Le stock est inférieur ou égal au seuil de sécurité. Pensez à réapprovisionner.
                 </div>
@@ -204,12 +213,19 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
                  ))}
               </div>
 
-            <Link 
-              href={`/catalogue/${article.id}/mouvement`} 
-              className="block w-full py-3 text-center bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg shadow-md transition-colors mt-4"
-            >
-                Faire un mouvement de stock
-            </Link>
+            {/* On cache le bouton de mouvement si l'article est archivé */}
+            {article.actif ? (
+                <Link 
+                href={`/catalogue/${article.id}/mouvement`} 
+                className="block w-full py-3 text-center bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg shadow-md transition-colors mt-4"
+                >
+                    Faire un mouvement de stock
+                </Link>
+            ) : (
+                <div className="p-3 text-center text-sm text-muted-fg bg-gray-100 rounded-lg mt-4 italic border border-gray-200">
+                    Article archivé. Réactivez-le pour faire des mouvements.
+                </div>
+            )}
             </div>
           </div>
           
