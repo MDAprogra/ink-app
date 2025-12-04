@@ -66,7 +66,7 @@ export default function PrintLabelButton({ reference, nom }: PrintLabelButtonPro
             }
             .ref {
               margin-top: 1mm;
-              font-size: 10px;
+              font-size: 15px;
               text-align: center;
             }
             svg {

@@ -45,6 +45,16 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        try {
+          await db.user.update({
+            where: { id: user.id },
+            data: { lastConnect: new Date() },
+          });
+        } catch (error) {
+          console.error("Erreur lors de la mise à jour de lastConnect", error);
+          // On ne bloque pas la connexion si cette mise à jour échoue
+        }
+
         // 3. Si tout est bon, on retourne l'utilisateur
         return {
           id: user.id + "",
