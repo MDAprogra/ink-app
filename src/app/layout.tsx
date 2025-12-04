@@ -43,7 +43,7 @@ export default async function RootLayout({
             <div className="flex h-16 justify-between items-center">
               <div className="flex gap-8 items-center">
                 <Link href="/" className="text-xl font-bold text-primary">
-                  📦 InkStock
+                  Ink'App
                 </Link>
                 <div className="hidden md:flex gap-6 text-sm font-medium">
                   <Link href="/catalogue" className="hover:text-primary transition">Catalogue</Link>
