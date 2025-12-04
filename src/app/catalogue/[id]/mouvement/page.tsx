@@ -2,6 +2,8 @@ import { db } from "@/lib/db";
 import MouvementForm from "@/components/MouvementForm";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -30,6 +32,15 @@ export default async function NewMouvementPage({ params }: PageProps) {
   async function createMouvement(formData: FormData) {
     "use server";
 
+    const session = await getServerSession(authOptions);
+  
+  if (!session || !session.user) {
+    throw new Error("Vous devez être connecté pour faire un mouvement");
+  }
+
+  // Conversion de l'ID string (NextAuth) en nombre (Prisma)
+  const userId = parseInt(session.user.id);
+  
     const type = formData.get("type") as string;
     const stockIdRaw = formData.get("stockId") as string;
     
@@ -77,7 +88,8 @@ export default async function NewMouvementPage({ params }: PageProps) {
           type: type,
           quantite: quantite,
           idStock: targetStockId,
-          date: new Date()
+          date: new Date(),
+          idUser : userId
         }
       });
     });
