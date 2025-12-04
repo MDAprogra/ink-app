@@ -27,8 +27,9 @@ export default function LoginPage() {
         setError("Email ou mot de passe incorrect.");
         setLoading(false);
       } else {
-        router.refresh();
-        router.push("/catalogue"); // Redirection après succès
+        // router.refresh();
+        // router.push("/catalogue"); // Redirection après succès
+        window.location.href = "/catalogue";
       }
     } catch (error) {
       setError("Une erreur est survenue.");
