@@ -38,7 +38,6 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
   }
 
   // 3. Calculs simples pour l'affichage
-  // CORRECTION ICI : Conversion explicite de Decimal vers Number
   const stockTotal = article.stocks.reduce((acc, s) => acc + Number(s.quantite), 0);
   const stockSecurite = Number(article.stockSecurite);
   const isLowStock = stockTotal <= stockSecurite;
@@ -47,9 +46,10 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
   const tousMouvements = article.stocks.flatMap(s => s.mouvements)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  // Détermination de la référence à afficher sur le code-barres
-  // Priorité : Ref Interfas > Ref Fournisseur > ID
   const referencePourCodeBarre = article.referenceInterfas || article.referenceFournisseur || `ID-${article.id}`;
+  
+  // Unité par défaut si non définie
+  const unit = article.uniteGestion || "";
 
   return (
     <div className="max-w-6xl mx-auto p-8 space-y-8">
@@ -64,7 +64,7 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
                 ? "bg-red-50 text-red-700 border-red-200" 
                 : "bg-green-50 text-green-700 border-green-200"
             }`}>
-              {stockTotal} {article.uniteGestion} en stock
+              {stockTotal} {unit} en stock
             </span>
           </div>
           <p className="text-muted-fg mt-1">Réf: {article.referenceInterfas || "N/A"}</p>
@@ -85,7 +85,7 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
             Modifier
           </Link>
           
-          {/* Bouton d'archivage intégré ici avec les props requises */}
+          {/* Bouton d'archivage */}
           <ArticleStatusToggle 
             articleId={article.id} 
             actif={article.actif} 
@@ -168,8 +168,7 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-foreground">
-                        {/* Correction d'affichage Decimal -> Number */}
-                        {mvt.type === 'SORTIE' ? '-' : '+'}{Number(mvt.quantite)}  {article.uniteGestion}
+                        {mvt.type === 'SORTIE' ? '-' : '+'}{Number(mvt.quantite)} {unit}
                       </td>
                     </tr>
                   ))
@@ -187,12 +186,12 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                 <span className="text-muted-fg">Stock Physique</span>
-                <span className="text-2xl font-bold text-foreground">{stockTotal} {article.uniteGestion}</span>
+                <span className="text-2xl font-bold text-foreground">{stockTotal} {unit}</span>
               </div>
               
               <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                 <span className="text-muted-fg">Seuil de Sécurité</span>
-                <span className="font-mono text-foreground">{stockSecurite} {article.uniteGestion}</span>
+                <span className="font-mono text-foreground">{stockSecurite} {unit}</span>
               </div>
 
               {isLowStock && article.actif && (
@@ -208,8 +207,7 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
                  {article.stocks.map((stock, index) => (
                     <div key={stock.id} className="text-sm border border-border p-2 rounded bg-muted/10 flex justify-between">
                        <span>Lot #{stock.id}</span>
-                       {/* Correction d'affichage Decimal -> Number */}
-                       <span className="font-semibold">{Number(stock.quantite)} unités</span>
+                       <span className="font-semibold">{Number(stock.quantite)} {unit || "unités"}</span>
                     </div>
                  ))}
               </div>
@@ -230,7 +228,6 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
             </div>
           </div>
           
-          {/* Intégration du bouton d'impression avec les props requises */}
           <PrintLabelButton 
             reference={referencePourCodeBarre} 
             nom={article.nom} 
