@@ -64,7 +64,7 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
                 ? "bg-red-50 text-red-700 border-red-200" 
                 : "bg-green-50 text-green-700 border-green-200"
             }`}>
-              {stockTotal} en stock
+              {stockTotal} {article.uniteGestion} en stock
             </span>
           </div>
           <p className="text-muted-fg mt-1">Réf: {article.referenceInterfas || "N/A"}</p>
@@ -169,7 +169,7 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-foreground">
                         {/* Correction d'affichage Decimal -> Number */}
-                        {mvt.type === 'SORTIE' ? '-' : '+'}{Number(mvt.quantite)}
+                        {mvt.type === 'SORTIE' ? '-' : '+'}{Number(mvt.quantite)}  {article.uniteGestion}
                       </td>
                     </tr>
                   ))
@@ -187,12 +187,12 @@ export default async function CatalogueDetailPage({ params }: PageProps) {
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                 <span className="text-muted-fg">Stock Physique</span>
-                <span className="text-2xl font-bold text-foreground">{stockTotal}</span>
+                <span className="text-2xl font-bold text-foreground">{stockTotal} {article.uniteGestion}</span>
               </div>
               
               <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                 <span className="text-muted-fg">Seuil de Sécurité</span>
-                <span className="font-mono text-foreground">{stockSecurite}</span>
+                <span className="font-mono text-foreground">{stockSecurite} {article.uniteGestion}</span>
               </div>
 
               {isLowStock && article.actif && (
