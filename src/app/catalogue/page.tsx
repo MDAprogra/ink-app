@@ -122,7 +122,7 @@ export default async function CataloguePage({ searchParams }: PageProps) {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-fg">
-                        {stockSecu}
+                        {stockSecu} {article.uniteGestion}
                       </td>
 
                       {/* --- COLONNE ACTIONS --- */}
