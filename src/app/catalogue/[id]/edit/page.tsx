@@ -33,6 +33,7 @@ export default async function EditCataloguePage({ params }: PageProps) {
     const couleur = formData.get("couleur") as string;
     const description = formData.get("description") as string;
     const stockSecurite = formData.get("stockSecurite");
+    const uniteGestion = formData.get("uniteGestion") as string;
 
     // Validation basique
     if (!nom || !fournisseur) {
@@ -51,6 +52,7 @@ export default async function EditCataloguePage({ params }: PageProps) {
         couleur: couleur || null,
         description: description || null,
         stockSecurite: stockSecurite ? Number(stockSecurite) : 0,
+        uniteGestion : uniteGestion || null,
       },
     });
 
@@ -156,6 +158,18 @@ export default async function EditCataloguePage({ params }: PageProps) {
               className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <p className="text-xs text-muted-fg">Seuil d'alerte pour réappro.</p>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="stockSecurite" className="block text-sm font-medium text-foreground">Unité de Gestion</label>
+            <input
+              type="text"
+              name="uniteGestion"
+              id="uniteGestion"
+              defaultValue={article.uniteGestion || ""}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <p className="text-xs text-muted-fg">kg, L, ...</p>
           </div>
         </div>
 
