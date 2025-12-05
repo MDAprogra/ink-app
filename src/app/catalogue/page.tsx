@@ -28,6 +28,7 @@ export default async function CataloguePage({ searchParams }: PageProps) {
         { referenceInterfas: { contains: query } },
         { referenceFournisseur: { contains: query } },
         { fournisseur: { contains: query } },
+        { uniteGestion: { contains: query } },
       ],
     },
     include: {
@@ -117,7 +118,7 @@ export default async function CataloguePage({ searchParams }: PageProps) {
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           isLowStock ? "bg-red-100 text-red-800 border border-red-200" : "bg-green-100 text-green-800 border border-green-200"
                         }`}>
-                          {stockTotal}
+                          {stockTotal} {article.uniteGestion}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-fg">
