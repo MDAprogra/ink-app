@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
-import ColorInput from "@/components/ColorInput"; // On réutilise ton composant client !
+import ColorInput from "@/components/ColorInput";
 
 interface PageProps {
   searchParams: Promise<{ ref?: string }>;
@@ -10,6 +10,7 @@ interface PageProps {
 
 export default async function NewCataloguePage({ searchParams }: PageProps) {
   const { ref } = await searchParams;
+  
   // --- SERVER ACTION ---
   async function createArticle(formData: FormData) {
     "use server";
@@ -22,11 +23,13 @@ export default async function NewCataloguePage({ searchParams }: PageProps) {
     const type = formData.get("type") as string;
     const couleur = formData.get("couleur") as string;
     const description = formData.get("description") as string;
-    const stockSecurite = formData.get("stockSecurite");
+    
+    // Pour les numériques et optionnels, on récupère en string d'abord
+    const stockSecuriteRaw = formData.get("stockSecurite") as string;
+    const uniteGestion = formData.get("uniteGestion") as string;
 
     // 2. Validation basique
     if (!nom || !fournisseur || !refFourn) {
-      // Idéalement, on retournerait une erreur à l'utilisateur ici
       return; 
     }
 
@@ -40,9 +43,8 @@ export default async function NewCataloguePage({ searchParams }: PageProps) {
         type: type || null,
         couleur: couleur || null,
         description: description || null,
-        stockSecurite: stockSecurite ? Number(stockSecurite) : 0,
-        // Note : On ne crée pas de stock ici. Le stock initial est implicitement à 0.
-        // L'utilisateur fera une "Entrée de stock" via la page Mouvement ensuite.
+        stockSecurite: stockSecuriteRaw ? Number(stockSecuriteRaw) : 0,
+        uniteGestion: uniteGestion || null,
       },
     });
 
@@ -124,19 +126,18 @@ export default async function NewCataloguePage({ searchParams }: PageProps) {
               type="text"
               name="refFourn"
               id="refFourn"
-              // ICI : On injecte la valeur par défaut
               defaultValue={ref || ""} 
               placeholder="Ex: REF-ABC-123"
               required
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm ..."
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-fg focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
         </div>
 
         <hr className="border-border" />
 
-        {/* Section Détails */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Section Détails - Réorganisée en 2 colonnes pour intégrer l'unité */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label htmlFor="type" className="block text-sm font-medium text-foreground">Type / Catégorie</label>
             <input
@@ -150,7 +151,6 @@ export default async function NewCataloguePage({ searchParams }: PageProps) {
 
           <div className="space-y-2">
             <label htmlFor="couleur" className="block text-sm font-medium text-foreground">Couleur</label>
-            {/* On réutilise ton composant Client pour la gestion couleur */}
             <ColorInput defaultValue="#000000" />
           </div>
 
@@ -165,6 +165,29 @@ export default async function NewCataloguePage({ searchParams }: PageProps) {
               className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-fg focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <p className="text-xs text-muted-fg">Alerte si stock inférieur à...</p>
+          </div>
+
+          {/* Nouveau champ : Unité de gestion */}
+          <div className="space-y-2">
+            <label htmlFor="uniteGestion" className="block text-sm font-medium text-foreground">Unité de Gestion</label>
+            <input
+              type="text"
+              name="uniteGestion"
+              id="uniteGestion"
+              list="units-list"
+              placeholder="ex: kg, L, unité"
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <datalist id="units-list">
+              <option value="kg" />
+              <option value="L" />
+              <option value="m" />
+              <option value="m²" />
+              <option value="unité" />
+              <option value="carton" />
+              <option value="rouleau" />
+            </datalist>
+            <p className="text-xs text-muted-fg">Unité utilisée pour les mouvements (facultatif)</p>
           </div>
         </div>
 
@@ -181,7 +204,6 @@ export default async function NewCataloguePage({ searchParams }: PageProps) {
 
         {/* Actions */}
         <div className="flex justify-end pt-4 gap-4">
-            {/* Note: Pour un bouton Reset, il faut un composant Client, on reste simple ici */}
             <button
                 type="submit"
                 className="px-6 py-2 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-md shadow-md transition"
