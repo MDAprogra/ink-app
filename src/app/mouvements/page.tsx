@@ -1,217 +1,122 @@
 import { db } from "@/lib/db";
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { revalidatePath } from "next/cache";
-import ColorInput from "@/components/ColorInput";
 
-interface PageProps {
-  searchParams: Promise<{ ref?: string }>;
-}
-
-export default async function NewCataloguePage({ searchParams }: PageProps) {
-  const { ref } = await searchParams;
-  
-  // --- SERVER ACTION ---
-  async function createArticle(formData: FormData) {
-    "use server";
-
-    // 1. Extraction des données
-    const nom = formData.get("nom") as string;
-    const refInterfas = formData.get("refInterfas") as string;
-    const refFourn = formData.get("refFourn") as string;
-    const fournisseur = formData.get("fournisseur") as string;
-    const type = formData.get("type") as string;
-    const couleur = formData.get("couleur") as string;
-    const description = formData.get("description") as string;
-    
-    // Pour les numériques et optionnels, on récupère en string d'abord
-    const stockSecuriteRaw = formData.get("stockSecurite") as string;
-    const uniteGestion = formData.get("uniteGestion") as string;
-
-    // 2. Validation basique
-    if (!nom || !fournisseur || !refFourn) {
-      return; 
-    }
-
-    // 3. Création en base de données
-    const newArticle = await db.catalogue.create({
-      data: {
-        nom,
-        referenceInterfas: refInterfas || null,
-        referenceFournisseur: refFourn,
-        fournisseur,
-        type: type || null,
-        couleur: couleur || null,
-        description: description || null,
-        stockSecurite: stockSecuriteRaw ? Number(stockSecuriteRaw) : 0,
-        uniteGestion: uniteGestion || null, // Ajout du champ ici
+export default async function MouvementsPage() {
+  // 1. Récupération des mouvements avec relations imbriquées
+  const mouvements = await db.mouvement.findMany({
+    orderBy: {
+      date: 'desc', // Les plus récents en haut
+    },
+    take: 100, // On limite aux 100 derniers pour la performance (pagination à prévoir plus tard)
+    include: {
+      stock: {
+        include: {
+          catalogue: true, // Pour récupérer le nom du produit ET l'unité
+        },
       },
-    });
+    },
+  });
 
-    // 4. Actualisation et Redirection
-    revalidatePath("/catalogue");
-    
-    // On redirige vers la page détail du nouvel article pour confirmer la création
-    redirect(`/catalogue/${newArticle.id}`);
-  }
-
-  // --- RENDER ---
   return (
-    <div className="max-w-3xl mx-auto p-8 space-y-8">
+    <div className="max-w-7xl mx-auto p-8 space-y-8">
       
       {/* En-tête */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
-            <h1 className="text-2xl font-bold text-foreground">Nouvel Article</h1>
-            <p className="text-muted-fg mt-1">Ajoutez une nouvelle référence au catalogue.</p>
+          <h1 className="text-3xl font-bold text-foreground">Journal des Mouvements</h1>
+          <p className="text-muted-fg mt-1">Historique global des entrées et sorties de stock.</p>
         </div>
         <Link 
-            href="/catalogue" 
-            className="text-sm px-4 py-2 border border-border rounded-md hover:bg-muted transition text-foreground"
+          href="/catalogue"
+          className="px-4 py-2 border border-border rounded-md text-foreground hover:bg-muted transition"
         >
-          Annuler
+          Retour au Catalogue
         </Link>
       </div>
 
-      {/* Formulaire */}
-      <form action={createArticle} className="bg-white dark:bg-slate-950 border border-border rounded-xl p-6 shadow-sm space-y-6">
-        
-        {/* Si on vient du scan, on affiche un petit message sympa */}
-        {ref && (
-            <div className="mb-6 p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-sm rounded-md border border-blue-200 dark:border-blue-800">
-                ✨ Pré-remplissage avec le code scanné : <strong>{ref}</strong>
-            </div>
-        )}
+      {/* Tableau */}
+      <div className="bg-white dark:bg-slate-950 border border-border rounded-xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted/50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-fg uppercase tracking-wider">Date & Heure</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-fg uppercase tracking-wider">Article</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-fg uppercase tracking-wider">Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-fg uppercase tracking-wider">Quantité</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-fg uppercase tracking-wider">Ref. Stock</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-muted-fg uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-slate-950 divide-y divide-border">
+              {mouvements.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-10 text-center text-muted-fg">
+                    Aucun mouvement enregistré pour le moment.
+                  </td>
+                </tr>
+              ) : (
+                mouvements.map((mvt) => {
+                  const isEntree = mvt.type === 'ENTREE';
+                  const produit = mvt.stock.catalogue;
 
-        {/* Section Identité */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label htmlFor="nom" className="block text-sm font-medium text-foreground">Nom du produit *</label>
-            <input
-              type="text"
-              name="nom"
-              id="nom"
-              placeholder="Ex: Encre Noire Premium"
-              required
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-fg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+                  return (
+                    <tr key={mvt.id} className="hover:bg-muted/30 transition-colors">
+                      {/* Date */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-fg">
+                        <div className="text-foreground font-medium">
+                          {new Date(mvt.date).toLocaleDateString('fr-FR')}
+                        </div>
+                        <div className="text-xs">
+                          {new Date(mvt.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute:'2-digit' })}
+                        </div>
+                      </td>
 
-          <div className="space-y-2">
-            <label htmlFor="fournisseur" className="block text-sm font-medium text-foreground">Fournisseur *</label>
-            <input
-              type="text"
-              name="fournisseur"
-              id="fournisseur"
-              placeholder="Ex: Encre & Co"
-              required
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-fg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+                      {/* Article (Lien vers le détail) */}
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-foreground">{produit.nom}</div>
+                        <div className="text-xs text-muted-fg">Ref: {produit.referenceInterfas || "N/A"}</div>
+                      </td>
 
-          <div className="space-y-2">
-            <label htmlFor="refInterfas" className="block text-sm font-medium text-foreground">Réf. Interne (Interfas)</label>
-            <input
-              type="text"
-              name="refInterfas"
-              id="refInterfas"
-              placeholder="Ex: INT-001"
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-fg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+                      {/* Type (Badge couleur) */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          isEntree 
+                            ? "bg-green-100 text-green-800 border border-green-200" 
+                            : "bg-orange-100 text-orange-800 border border-orange-200"
+                        }`}>
+                          {mvt.type}
+                        </span>
+                      </td>
 
-          <div className="space-y-2">
-            <label htmlFor="refFourn" className="block text-sm font-medium text-foreground">Réf. Fournisseur *</label>
-            <input
-              type="text"
-              name="refFourn"
-              id="refFourn"
-              defaultValue={ref || ""} 
-              placeholder="Ex: REF-ABC-123"
-              required
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-fg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+                      {/* Quantité AVEC UNITE */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`text-sm font-bold ${
+                          isEntree ? "text-green-600" : "text-orange-600"
+                        }`}>
+                          {isEntree ? "+" : "-"}{Number(mvt.quantite)} {produit.uniteGestion}
+                        </span>
+                      </td>
+
+                      {/* Info technique (ID du lot) */}
+                      <td className="px-6 py-4 whitespace-nowrap text-xs text-muted-fg">
+                        Lot #{mvt.idStock}
+                      </td>
+
+                      {/* Lien Voir */}
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <Link href={`/catalogue/${produit.id}`} className="text-primary hover:text-primary/80">
+                          Voir produit
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
-
-        <hr className="border-border" />
-
-        {/* Section Détails - Réorganisée en 2 colonnes pour intégrer l'unité */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label htmlFor="type" className="block text-sm font-medium text-foreground">Type / Catégorie</label>
-            <input
-              type="text"
-              name="type"
-              id="type"
-              placeholder="Ex: Solvant"
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-fg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="couleur" className="block text-sm font-medium text-foreground">Couleur</label>
-            <ColorInput defaultValue="#000000" />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="stockSecurite" className="block text-sm font-medium text-foreground">Stock de Sécurité</label>
-            <input
-              type="number"
-              name="stockSecurite"
-              id="stockSecurite"
-              defaultValue="0"
-              min="0"
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-fg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <p className="text-xs text-muted-fg">Alerte si stock inférieur à...</p>
-          </div>
-
-          {/* Nouveau champ : Unité de gestion */}
-          <div className="space-y-2">
-            <label htmlFor="uniteGestion" className="block text-sm font-medium text-foreground">Unité de Gestion</label>
-            <input
-              type="text"
-              name="uniteGestion"
-              id="uniteGestion"
-              list="units-list"
-              placeholder="ex: kg, L, unité"
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <datalist id="units-list">
-              <option value="kg" />
-              <option value="L" />
-              <option value="m" />
-              <option value="m²" />
-              <option value="unité" />
-              <option value="carton" />
-              <option value="rouleau" />
-            </datalist>
-            <p className="text-xs text-muted-fg">Unité utilisée pour les mouvements (facultatif)</p>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="description" className="block text-sm font-medium text-foreground">Description</label>
-          <textarea
-            name="description"
-            id="description"
-            rows={3}
-            placeholder="Détails techniques, emplacement, notes..."
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-fg focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-end pt-4 gap-4">
-            <button
-                type="submit"
-                className="px-6 py-2 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-md shadow-md transition"
-            >
-                Créer l'article
-            </button>
-        </div>
-      </form>
+      </div>
     </div>
   );
 }
