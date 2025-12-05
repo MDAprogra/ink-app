@@ -32,12 +32,11 @@ export default async function EditCataloguePage({ params }: PageProps) {
     const type = formData.get("type") as string;
     const couleur = formData.get("couleur") as string;
     const description = formData.get("description") as string;
-    const stockSecurite = formData.get("stockSecurite");
+    
+    const stockSecuriteRaw = formData.get("stockSecurite") as string;
     const uniteGestion = formData.get("uniteGestion") as string;
 
-    // Validation basique
     if (!nom || !fournisseur) {
-      // Dans une vraie app, on gérerait les erreurs plus finement
       return;
     }
 
@@ -51,16 +50,14 @@ export default async function EditCataloguePage({ params }: PageProps) {
         type: type || null,
         couleur: couleur || null,
         description: description || null,
-        stockSecurite: stockSecurite ? Number(stockSecurite) : 0,
+        stockSecurite: stockSecuriteRaw ? Number(stockSecuriteRaw) : 0,
         uniteGestion : uniteGestion || null,
       },
     });
 
-    // On rafraîchit les caches pour que les nouvelles données s'affichent partout
     revalidatePath("/catalogue");
     revalidatePath(`/catalogue/${articleId}`);
     
-    // On redirige vers la page de détail
     redirect(`/catalogue/${articleId}`);
   }
 
@@ -128,7 +125,7 @@ export default async function EditCataloguePage({ params }: PageProps) {
         <hr className="border-border" />
 
         {/* Section Détails */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label htmlFor="type" className="block text-sm font-medium text-foreground">Type / Catégorie</label>
             <input
@@ -144,9 +141,8 @@ export default async function EditCataloguePage({ params }: PageProps) {
             <label htmlFor="couleur" className="block text-sm font-medium text-foreground">
                 Couleur (Hex ou Nom)
             </label>
-            {/* On appelle notre Client Component ici */}
             <ColorInput defaultValue={article.couleur} />
-        </div>
+          </div>
 
           <div className="space-y-2">
             <label htmlFor="stockSecurite" className="block text-sm font-medium text-foreground">Stock de Sécurité</label>
@@ -161,15 +157,26 @@ export default async function EditCataloguePage({ params }: PageProps) {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="stockSecurite" className="block text-sm font-medium text-foreground">Unité de Gestion</label>
+            <label htmlFor="uniteGestion" className="block text-sm font-medium text-foreground">Unité de Gestion</label>
             <input
               type="text"
               name="uniteGestion"
               id="uniteGestion"
+              list="units-list"
               defaultValue={article.uniteGestion || ""}
+              placeholder="ex: kg, L, unité"
               className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            <p className="text-xs text-muted-fg">kg, L, ...</p>
+            <datalist id="units-list">
+              <option value="kg" />
+              <option value="L" />
+              <option value="m" />
+              <option value="m²" />
+              <option value="unité" />
+              <option value="carton" />
+              <option value="rouleau" />
+            </datalist>
+            <p className="text-xs text-muted-fg">Unité utilisée pour les mouvements (facultatif)</p>
           </div>
         </div>
 
