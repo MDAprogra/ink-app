@@ -20,7 +20,7 @@ export default async function NewMouvementPage({ params }: PageProps) {
     where: { id: articleId },
     include: {
       stocks: {
-        where: { quantite: { gt: 0 } }, // On récupère seulement les lots qui ont encore du stock
+        where: { quantite: { gt: 0 } }, 
         orderBy: { dateReapprovisionnement: 'desc' }
       }
     }
@@ -28,61 +28,49 @@ export default async function NewMouvementPage({ params }: PageProps) {
 
   if (!article) return notFound();
 
-  // 2. LA SERVER ACTION (Cœur du système)
+  // 2. LA SERVER ACTION
   async function createMouvement(formData: FormData) {
     "use server";
 
     const session = await getServerSession(authOptions);
   
-  if (!session || !session.user) {
-    throw new Error("Vous devez être connecté pour faire un mouvement");
-  }
+    if (!session || !session.user) {
+      throw new Error("Vous devez être connecté pour faire un mouvement");
+    }
 
-  // Conversion de l'ID string (NextAuth) en nombre (Prisma)
-  const userId = parseInt(session.user.id);
-  
+    const userId = parseInt(session.user.id);
     const type = formData.get("type") as string;
     const stockIdRaw = formData.get("stockId") as string;
-    
-    // CORRECTION MAJEURE ICI : parseInt -> Number
-    // parseInt tronque les décimales (1.5 devient 1). Number garde 1.5.
     const quantite = Number(formData.get("quantite")); 
     const articleIdForm = parseInt(formData.get("articleId") as string);
 
     if (!quantite || quantite <= 0) return;
 
-    // --- LOGIQUE TRANSACTIONNELLE ---
     await db.$transaction(async (tx) => {
       let targetStockId: number;
 
-      // CAS A : Création d'un NOUVEAU lot (Entrée seulement)
       if (type === "ENTREE" && stockIdRaw === "nouveau") {
         const newStock = await tx.stock.create({
           data: {
             idCatalogue: articleIdForm,
-            quantite: quantite, // Prisma convertira le Number JS en Decimal BDD
+            quantite: quantite, 
             dateReapprovisionnement: new Date(),
           }
         });
         targetStockId = newStock.id;
       } 
-      // CAS B : Mise à jour d'un lot EXISTANT (Entrée ou Sortie)
       else {
         targetStockId = parseInt(stockIdRaw);
-        
-        // On calcule l'incrément (+1.5 ou -1.5)
         const increment = type === "ENTREE" ? quantite : -quantite;
 
         await tx.stock.update({
           where: { id: targetStockId },
           data: {
-            // Prisma gère très bien l'incrément avec des floats sur un champ Decimal
             quantite: { increment: increment } 
           }
         });
       }
 
-      // Enfin, on trace le mouvement dans l'historique
       await tx.mouvement.create({
         data: {
           type: type,
@@ -94,11 +82,13 @@ export default async function NewMouvementPage({ params }: PageProps) {
       });
     });
 
-    // Nettoyage et Redirection
     revalidatePath(`/catalogue/${articleIdForm}`);
     revalidatePath("/mouvements");
     redirect(`/catalogue/${articleIdForm}`);
   }
+
+  // 3. Récupération de la session pour les permissions
+  const session = await getServerSession(authOptions);
 
   return (
     <div className="max-w-xl mx-auto p-8">
@@ -111,12 +101,14 @@ export default async function NewMouvementPage({ params }: PageProps) {
         <MouvementForm 
           stocks={article.stocks.map(s => ({
             id: s.id,
-            // Conversion Decimal -> Number pour le formulaire React
             quantite: Number(s.quantite),
             date: s.dateReapprovisionnement
           }))} 
           articleId={articleId}
           onSubmit={createMouvement}
+          userRole={session?.user?.role}
+          // ICI : On passe l'unité au formulaire
+          unite={article.uniteGestion} 
         />
       </div>
     </div>
