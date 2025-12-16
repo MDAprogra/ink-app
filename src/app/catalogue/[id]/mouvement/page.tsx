@@ -20,10 +20,10 @@ export default async function NewMouvementPage({ params }: PageProps) {
     where: { id: articleId },
     include: {
       stocks: {
-        where: { quantite: { gt: 0 } }, 
-        orderBy: { dateReapprovisionnement: 'desc' }
-      }
-    }
+        where: { quantite: { gt: 0 } },
+        orderBy: { dateReapprovisionnement: "desc" },
+      },
+    },
   });
 
   if (!article) return notFound();
@@ -33,7 +33,7 @@ export default async function NewMouvementPage({ params }: PageProps) {
     "use server";
 
     const session = await getServerSession(authOptions);
-  
+
     if (!session || !session.user) {
       throw new Error("Vous devez être connecté pour faire un mouvement");
     }
@@ -41,7 +41,7 @@ export default async function NewMouvementPage({ params }: PageProps) {
     const userId = parseInt(session.user.id);
     const type = formData.get("type") as string;
     const stockIdRaw = formData.get("stockId") as string;
-    const quantite = Number(formData.get("quantite")); 
+    const quantite = Number(formData.get("quantite"));
     const articleIdForm = parseInt(formData.get("articleId") as string);
 
     if (!quantite || quantite <= 0) return;
@@ -53,21 +53,20 @@ export default async function NewMouvementPage({ params }: PageProps) {
         const newStock = await tx.stock.create({
           data: {
             idCatalogue: articleIdForm,
-            quantite: quantite, 
+            quantite: quantite,
             dateReapprovisionnement: new Date(),
-          }
+          },
         });
         targetStockId = newStock.id;
-      } 
-      else {
+      } else {
         targetStockId = parseInt(stockIdRaw);
         const increment = type === "ENTREE" ? quantite : -quantite;
 
         await tx.stock.update({
           where: { id: targetStockId },
           data: {
-            quantite: { increment: increment } 
-          }
+            quantite: { increment: increment },
+          },
         });
       }
 
@@ -77,8 +76,8 @@ export default async function NewMouvementPage({ params }: PageProps) {
           quantite: quantite,
           idStock: targetStockId,
           date: new Date(),
-          idUser : userId
-        }
+          idUser: userId,
+        },
       });
     });
 
@@ -93,22 +92,27 @@ export default async function NewMouvementPage({ params }: PageProps) {
   return (
     <div className="max-w-xl mx-auto p-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Nouveau Mouvement</h1>
-        <p className="text-muted-fg">Produit : <span className="font-semibold text-foreground">{article.nom}</span></p>
+        <h1 className="text-2xl font-bold text-foreground">
+          Nouveau Mouvement
+        </h1>
+        <p className="text-muted-fg">
+          Produit :{" "}
+          <span className="font-semibold text-foreground">{article.nom}</span>
+        </p>
       </div>
 
       <div className="bg-white dark:bg-slate-950 border border-border rounded-xl p-6 shadow-sm">
-        <MouvementForm 
-          stocks={article.stocks.map(s => ({
+        <MouvementForm
+          stocks={article.stocks.map((s) => ({
             id: s.id,
             quantite: Number(s.quantite),
-            date: s.dateReapprovisionnement
-          }))} 
+            date: s.dateReapprovisionnement,
+          }))}
           articleId={articleId}
           onSubmit={createMouvement}
           userRole={session?.user?.role}
           // ICI : On passe l'unité au formulaire
-          unite={article.uniteGestion} 
+          unite={article.uniteGestion}
         />
       </div>
     </div>
